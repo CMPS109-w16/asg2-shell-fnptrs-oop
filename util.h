@@ -51,10 +51,6 @@ class exit_status {
       static int get();
 };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> c1dd743e6901664afcf63a5fd596c8b4aa9bdc90
 // split -
 //    Split a string into a wordvec (as defined above).  Any sequence
 //    of chars in the delimiter string is used as a separator.  To

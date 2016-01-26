@@ -24,7 +24,6 @@ using inode_ptr = shared_ptr<inode>;
 using base_file_ptr = shared_ptr<base_file>;
 ostream& operator<< (ostream&, file_type);
 
-
 // inode_state -
 //    A small convenient class to maintain the state of the simulated
 //    process:  the root (/), the current directory (.), and the
@@ -68,7 +67,6 @@ class inode {
       int get_inode_nr() const;
 };
 
-
 // class base_file -
 // Just a base class at which an inode can point.  No data or
 // functions.  Makes the synthesized members useable only from
@@ -96,7 +94,6 @@ class base_file {
       virtual inode_ptr mkfile (const string& filename) = 0;
 };
 
-
 // class plain_file -
 // Used to hold data.
 // synthesized default ctor -

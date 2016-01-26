@@ -55,7 +55,7 @@ int inode::get_inode_nr() const {
    return inode_nr;
 }
 
-
+
 file_error::file_error (const string& what):
             runtime_error (what) {
 }

@@ -36,7 +36,6 @@ void scan_options (int argc, char** argv) {
    }
 }
 
-
 // main -
 //    Main program which loops reading commands until end of file.
 

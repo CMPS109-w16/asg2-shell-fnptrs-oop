@@ -32,6 +32,11 @@ inode_state::inode_state() {
 
 const string& inode_state::prompt() { return prompt_; }
 
+// Sets the prompt character to something custom set.
+void inode_state::setPrompt(string newPrompt) {
+   prompt_ = newPrompt;
+}
+
 ostream& operator<< (ostream& out, const inode_state& state) {
    out << "inode_state: root = " << state.root
        << ", cwd = " << state.cwd;

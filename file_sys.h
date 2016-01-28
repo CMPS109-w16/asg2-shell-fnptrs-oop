@@ -41,6 +41,7 @@ class inode_state {
    public:
       inode_state();
       const string& prompt();
+      void setPrompt(const string);
 };
 
 // class inode -

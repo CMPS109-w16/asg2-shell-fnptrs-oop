@@ -80,7 +80,14 @@ void fn_mkdir (inode_state& state, const wordvec& words){
    DEBUGF ('c', words);
 }
 
+// Changes the prompt character to something the user sets.
 void fn_prompt (inode_state& state, const wordvec& words){
+   string newPrompt = "";
+   for(int i = 1; i < words.size(); ++i) newPrompt += words.at(i);
+   // If there's no trailing space, add one for looks.
+   if(words.at(words.size()-1) != " ") newPrompt += ' ';
+   state.setPrompt(newPrompt);
+
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

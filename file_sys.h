@@ -40,8 +40,11 @@ class inode_state {
       string prompt_ {"% "};
    public:
       inode_state();
-      const string& prompt();
+      const string& prompt() { return prompt_; }
       void setPrompt(const string);
+      inode_ptr get_root() const {return root;}
+      inode_ptr get_cwd() const {return cwd;}
+      void set_cwd (inode_ptr new_cwd);
 };
 
 // class inode -

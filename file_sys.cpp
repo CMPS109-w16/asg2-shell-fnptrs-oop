@@ -30,11 +30,13 @@ inode_state::inode_state() {
           << ", prompt = \"" << prompt() << "\"");
 }
 
-const string& inode_state::prompt() { return prompt_; }
-
 // Sets the prompt character to something custom set.
 void inode_state::setPrompt(string newPrompt) {
    prompt_ = newPrompt;
+}
+
+void inode_state::set_cwd (inode_ptr new_cwd) {
+ cwd = new_cwd;
 }
 
 ostream& operator<< (ostream& out, const inode_state& state) {
@@ -66,7 +68,7 @@ file_error::file_error (const string& what):
 
 // Displays size of plain text file.
 size_t plain_file::size() const {
-   size_t size {0};
+   size_t size = 0;
    size = data.size();
    for (auto word = data.begin();
              word != data.end();
@@ -85,6 +87,7 @@ const wordvec& plain_file::readfile() const {
 
 void plain_file::writefile (const wordvec& words) {
    DEBUGF ('i', words);
+   data = words;
 }
 
 void plain_file::remove (const string&) {

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <unordered_map>
-
+#include <iomanip>
 using namespace std;
 
 #include "debug.h"
@@ -25,18 +25,37 @@ ostream& operator<< (ostream& out, file_type type) {
    return out << hash[type];
 }
 
+// Default constructor for inode_state.
+// After the constructor is called, the root directory is created here.
+// Thus, the cwd and parent both refer to the root, since this new
+// directory is the root and the root's parent is itself.
 inode_state::inode_state() {
+   root = make_shared<inode>(file_type::DIRECTORY_TYPE);
+   cwd = root; parent = root;
+   root->contents->set_dir(cwd, parent);
+   root->set_name("/");
    DEBUGF ('i', "root = " << root << ", cwd = " << cwd
           << ", prompt = \"" << prompt() << "\"");
 }
 
-// Sets the prompt character to something custom set.
-void inode_state::setPrompt(string newPrompt) {
-   prompt_ = newPrompt;
-}
+// Shows the prompt character in console.
+const string& inode_state::prompt() { return prompt_; }
 
-void inode_state::set_cwd (inode_ptr new_cwd) {
- cwd = new_cwd;
+// Prints the directory after being called by ls and lsr.
+// Pulls information from directory contents, and displays them in
+// an orderly manner.
+// Top line should show the directory name.
+// The directory listings will show the inode number, directory/file
+// size, and the name of the contents (directory or plain file) inside
+// in that order.
+void inode_state::print_directory
+(const inode_ptr& curr_dir, const wordvec& args) const {
+   cout << curr_dir->get_name() << ":" << endl;
+   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
+   for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
+      cout << setw(6) << curr_dir->get_inode_nr() << setw(6)
+               << dirents.size() << "  " << i->first << endl;
+   }
 }
 
 ostream& operator<< (ostream& out, const inode_state& state) {
@@ -87,7 +106,6 @@ const wordvec& plain_file::readfile() const {
 
 void plain_file::writefile (const wordvec& words) {
    DEBUGF ('i', words);
-   data = words;
 }
 
 void plain_file::remove (const string&) {
@@ -100,6 +118,36 @@ inode_ptr plain_file::mkdir (const string&) {
 
 inode_ptr plain_file::mkfile (const string&) {
    throw file_error ("is a plain file");
+}
+
+void plain_file::set_dir(inode_ptr cwd, inode_ptr parent){
+   throw file_error("is a plain file");
+}
+
+const map<string, inode_ptr>& plain_file::get_contents(){
+   throw file_error("is a plain file");
+}
+
+// Default constructor for directory.
+// Each directory has null pointers to itself (.) and its parent (..)
+// by default upon creation. These are then set with directory::set_dir.
+directory::directory() {
+   dirents.insert(pair<string, inode_ptr>(".", nullptr));
+   dirents.insert(pair<string, inode_ptr>("..", nullptr));
+}
+
+// Sets the pointers for a directory.
+// The first line sets the . pointer to the directory itself, and the
+// second line sets the .. pointer to the directory's parent.
+void directory::set_dir(inode_ptr cwd, inode_ptr parent){
+   map<string, inode_ptr>::iterator i = dirents.begin();
+   i->second = cwd; ++i;
+   i->second = parent;
+}
+
+// Move to header later?
+const map<string, inode_ptr>& directory::get_contents(){
+   return dirents;
 }
 
 // Displays size of a directory.

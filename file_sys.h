@@ -37,14 +37,20 @@ class inode_state {
       inode_state& operator= (const inode_state&) = delete; // op=
       inode_ptr root {nullptr};
       inode_ptr cwd {nullptr};
+      inode_ptr parent {nullptr};
       string prompt_ {"% "};
    public:
       inode_state();
-      const string& prompt() { return prompt_; }
-      void setPrompt(const string);
+      const string& prompt();
       inode_ptr get_root() const {return root;}
       inode_ptr get_cwd() const {return cwd;}
-      void set_cwd (inode_ptr new_cwd);
+      void set_cwd(inode_ptr new_cwd) {cwd = new_cwd;}
+      void set_prompt(string new_prompt){prompt_ = new_prompt;}
+      inode_ptr get_parent() const {return parent;}
+      void print_directory(const inode_ptr&, const wordvec&) const;
+
+
+
 };
 
 // class inode -
@@ -66,9 +72,13 @@ class inode {
       static int next_inode_nr;
       int inode_nr;
       base_file_ptr contents;
+      string name {""};
    public:
       inode (file_type);
       int get_inode_nr() const;
+      void set_name(string s) {name = s;}
+      string get_name() const {return name;}
+
 };
 
 // class base_file -
@@ -96,6 +106,8 @@ class base_file {
       virtual void remove (const string& filename) = 0;
       virtual inode_ptr mkdir (const string& dirname) = 0;
       virtual inode_ptr mkfile (const string& filename) = 0;
+      virtual void set_dir(inode_ptr, inode_ptr) = 0;
+      virtual const map<string, inode_ptr>& get_contents() = 0;
 };
 
 // class plain_file -
@@ -117,6 +129,8 @@ class plain_file: public base_file {
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
+      virtual void set_dir(inode_ptr, inode_ptr) override;
+      virtual const map<string, inode_ptr>& get_contents() override;
 };
 
 // class directory -
@@ -142,12 +156,17 @@ class directory: public base_file {
       // Must be a map, not unordered_map, so printing is lexicographic
       map<string,inode_ptr> dirents;
    public:
+      directory();
+      directory(const directory&);
+      directory(directory&&);
       virtual size_t size() const override;
       virtual const wordvec& readfile() const override;
       virtual void writefile (const wordvec& newdata) override;
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
+      virtual void set_dir(inode_ptr, inode_ptr) override;
+      virtual const map<string, inode_ptr>& get_contents() override;
 };
 
 #endif

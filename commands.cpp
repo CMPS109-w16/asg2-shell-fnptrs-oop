@@ -60,7 +60,12 @@ void fn_exit (inode_state& state, const wordvec& words){
    throw ysh_exit();
 }
 
+// Displays the entities within a current directory, including files
+// and other directories.
 void fn_ls (inode_state& state, const wordvec& words){
+   if(words.size() == 1){
+      state.print_directory(state.get_cwd(), words);
+   }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
@@ -71,8 +76,8 @@ void fn_lsr (inode_state& state, const wordvec& words){
 }
 
 void fn_make (inode_state& state, const wordvec& words){
-    DEBUGF ('c', state);
-    DEBUGF ('c', words);
+   DEBUGF ('c', state);
+   DEBUGF ('c', words);
 }
 
 void fn_mkdir (inode_state& state, const wordvec& words){
@@ -80,14 +85,13 @@ void fn_mkdir (inode_state& state, const wordvec& words){
    DEBUGF ('c', words);
 }
 
-// Changes the prompt character to something the user sets.
+// Changes the character to be used as the prompt character.
 void fn_prompt (inode_state& state, const wordvec& words){
-   string newPrompt = "";
-   for(size_t i = 1; i < words.size(); ++i) newPrompt += words.at(i);
-   // If there's no trailing space, add one for looks.
-   if(words.at(words.size()-1) != " ") newPrompt += ' ';
-   state.setPrompt(newPrompt);
-
+   string new_prompt = "";
+   for(size_t i = 1; i < words.size(); ++i) new_prompt += words.at(i);
+   //If there's no trailing space, add one for looks.
+   if(words.at(words.size() - 1) != " ") new_prompt += ' ';
+   state.set_prompt(new_prompt);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

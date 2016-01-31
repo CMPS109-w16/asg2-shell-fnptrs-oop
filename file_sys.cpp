@@ -25,6 +25,19 @@ ostream& operator<< (ostream& out, file_type type) {
    return out << hash[type];
 }
 
+ostream& operator<< (ostream& out, const inode_state& state) {
+   out << "inode_state: root = " << state.root
+       << ", cwd = " << state.cwd;
+   return out;
+}
+
+file_error::file_error (const string& what):
+            runtime_error (what) {
+}
+//        *********************************************
+//        ************** Inode Functions **************
+//        *********************************************
+
 // Default constructor for inode_state.
 // After the constructor is called, the root directory is created here.
 // Thus, the cwd and parent both refer to the root, since this new
@@ -58,12 +71,6 @@ void inode_state::print_directory
    }
 }
 
-ostream& operator<< (ostream& out, const inode_state& state) {
-   out << "inode_state: root = " << state.root
-       << ", cwd = " << state.cwd;
-   return out;
-}
-
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
    switch (type) {
       case file_type::PLAIN_TYPE:
@@ -81,9 +88,9 @@ int inode::get_inode_nr() const {
    return inode_nr;
 }
 
-file_error::file_error (const string& what):
-            runtime_error (what) {
-}
+//       ****************************************************
+//       *************** Plain File Functions ***************
+//       ****************************************************
 
 // Displays size of plain text file.
 size_t plain_file::size() const {
@@ -127,6 +134,10 @@ void plain_file::set_dir(inode_ptr cwd, inode_ptr parent){
 const map<string, inode_ptr>& plain_file::get_contents(){
    throw file_error("is a plain file");
 }
+
+//        ***************************************************
+//        *************** Directory Functions ***************
+//        ***************************************************
 
 // Default constructor for directory.
 // Each directory has null pointers to itself (.) and its parent (..)

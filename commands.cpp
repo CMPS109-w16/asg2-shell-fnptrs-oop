@@ -42,15 +42,18 @@ int exit_status_message() {
 }
 
 // Comment function. Doesn't return or do anything.
-void fn_comm (inode_state& state, const wordvec& words){
+void fn_comm(inode_state& state, const wordvec& words) {
    // This has been intentionally left empty;
-   DEBUGF ('c', state);
-   DEBUGF ('c', words);
+   DEBUGF('c', state);
+   DEBUGF('c', words);
 }
 
-void fn_cat (inode_state& state, const wordvec& words){
-   DEBUGF ('c', state);
-   DEBUGF ('c', words);
+void fn_cat(inode_state& state, const wordvec& words) {
+   if (words.size() == 1) {
+      state.read_file(state.get_cwd(), words);
+   }
+      DEBUGF('c', state);
+      DEBUGF('c', words);
 }
 
 void fn_cd (inode_state& state, const wordvec& words){

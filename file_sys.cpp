@@ -108,6 +108,22 @@ void inode_state::create_file
    curr_dir->contents->set_contents(dirents);
 }
 
+// WIP function.
+void inode_state::read_file(const inode_ptr& curr_dir,
+         const wordvec& words) const {
+   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
+   for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+      if ((curr_dir->contents->is_dir(i->second) == false)) {
+         if (i->first == words.at(1)) {
+            for( auto ii = i->second->contents->readfile().begin(); ii !=i->second->contents->readfile().end(); ++ii)
+            {
+               cout << *ii;
+            }
+         }
+      }
+   }
+}
+
 //        *********************************************
 //        ************** Inode Functions **************
 //        *********************************************

@@ -51,6 +51,7 @@ class inode_state {
       inode_ptr get_parent() const {return parent;}
       void print_directory(const inode_ptr&, const wordvec&) const;
       void create_file(const inode_ptr&, const wordvec&) const;
+      void read_file(const inode_ptr&, const wordvec&) const;
 
 
 

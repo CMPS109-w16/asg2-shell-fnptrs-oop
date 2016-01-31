@@ -1,4 +1,6 @@
 // $Id: util.cpp,v 1.11 2016-01-13 16:21:53-08 - - $
+// Partner: Darius Sakhapour(dsakhapo@ucsc.edu)
+// Partner: Ryan Wong (rystwong@ucsc.edu)
 
 #include <cstdlib>
 #include <unistd.h>

@@ -1,4 +1,6 @@
 // $Id: file_sys.cpp,v 1.5 2016-01-14 16:16:52-08 - - $
+// Partner: Darius Sakhapour(dsakhapo@ucsc.edu)
+// Partner: Ryan Wong (rystwong@ucsc.edu)
 
 #include <iostream>
 #include <stdexcept>
@@ -10,6 +12,10 @@ using namespace std;
 #include "file_sys.h"
 
 int inode::next_inode_nr {1};
+
+//        *********************************************
+//        ************** Misc. Functions **************
+//        *********************************************
 
 struct file_type_hash {
    size_t operator() (file_type type) const {
@@ -34,9 +40,10 @@ ostream& operator<< (ostream& out, const inode_state& state) {
 file_error::file_error (const string& what):
             runtime_error (what) {
 }
-//        *********************************************
-//        ************** Inode Functions **************
-//        *********************************************
+
+//        ***************************************************
+//        ************** Inode State Functions **************
+//        ***************************************************
 
 // Default constructor for inode_state.
 // After the constructor is called, the root directory is created here.
@@ -66,11 +73,48 @@ void inode_state::print_directory
    cout << curr_dir->get_name() << ":" << endl;
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
-      cout << setw(6) << curr_dir->get_inode_nr() << setw(6)
-               << dirents.size() << "  " << i->first << endl;
+      // First if checks if the current inode points to a file.
+      if(curr_dir->contents->is_dir(i->second) == false){
+         cout << setw(6) << i->second->get_inode_nr() << setw(6)
+             << i->second->contents->size() << "  " << i->first << endl;
+      }
+      else{       // If the current inode points to a directory.
+         cout << setw(6) << i->second->get_inode_nr() << setw(6)
+             << i->second->contents->size() << "  " << i->first << endl;
+      }
    }
 }
 
+// Creates a new file for mkfile command, parses out the words to be
+// included in the file itself, then sets the pointers to put the file
+// within the current directory.
+void inode_state::create_file
+(const inode_ptr& curr_dir, const wordvec& words) const {
+   inode_ptr file = curr_dir->contents->mkfile(words.at(1));
+   vector<string> data;
+   // If the mkfile command is meant to add words to the file.
+   if(words.size() > 2){
+      // Start at 2, since the first two positions in the vector
+      // point to the command function and the file name. Everything
+      // after that are words to be added to the function.
+      for(size_t i = 2; i < words.size(); ++i){
+         data.push_back(words.at(i));
+      }
+   }      // If no words in mkfile command, make an empty file.
+   else data.push_back("");
+   file->contents->set_data(data);
+   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
+   dirents.insert(pair<string, inode_ptr>(file->get_name(), file));
+   curr_dir->contents->set_contents(dirents);
+}
+
+//        *********************************************
+//        ************** Inode Functions **************
+//        *********************************************
+
+// Default constructor for inode.
+// When inode is called with a file_type parameter, one of those
+// respective files (Plain_type or Directory_type) gets constructed.
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
    switch (type) {
       case file_type::PLAIN_TYPE:
@@ -83,6 +127,7 @@ inode::inode(file_type type): inode_nr (next_inode_nr++) {
    DEBUGF ('i', "inode " << inode_nr << ", type = " << type);
 }
 
+// Move to header later?
 int inode::get_inode_nr() const {
    DEBUGF ('i', "inode = " << inode_nr);
    return inode_nr;
@@ -93,14 +138,17 @@ int inode::get_inode_nr() const {
 //       ****************************************************
 
 // Displays size of plain text file.
+// Counts each individual character within a file.
 size_t plain_file::size() const {
-   size_t size = 0;
-   size = data.size();
+   size_t size {0};
+   size = data.size();     // Accounts for spaces removed by delimiter.
    for (auto word = data.begin();
              word != data.end();
              word++) {
-      size += word->size();
+       size += word->size();     // Counts the characters per word.
    }
+   // Compensates for a supposed extra space accounted for by
+   // size = data.size() above if there is at least one word in file.
    if (size > 1) size -= 1;
    DEBUGF ('i', "size = " << size);
    return size;
@@ -131,7 +179,11 @@ void plain_file::set_dir(inode_ptr cwd, inode_ptr parent){
    throw file_error("is a plain file");
 }
 
-const map<string, inode_ptr>& plain_file::get_contents(){
+map<string, inode_ptr>& plain_file::get_contents(){
+   throw file_error("is a plain file");
+}
+
+void plain_file::set_contents(const map<string, inode_ptr>&){
    throw file_error("is a plain file");
 }
 
@@ -157,11 +209,16 @@ void directory::set_dir(inode_ptr cwd, inode_ptr parent){
 }
 
 // Move to header later?
-const map<string, inode_ptr>& directory::get_contents(){
+map<string, inode_ptr>& directory::get_contents(){
    return dirents;
 }
 
-// Displays size of a directory.
+// Move to header later?
+void directory::set_contents(const map<string, inode_ptr>& new_map){
+   dirents = new_map;
+}
+
+// Counts the entities within a directory, and returns the size.
 size_t directory::size() const {
    size_t size {0};
    size = dirents.size();
@@ -177,6 +234,9 @@ void directory::writefile (const wordvec&) {
    throw file_error ("is a directory");
 }
 
+void directory::set_data(const wordvec& d){
+   throw file_error("is a directory");
+}
 void directory::remove (const string& filename) {
    DEBUGF ('i', filename);
 }
@@ -186,8 +246,11 @@ inode_ptr directory::mkdir (const string& dirname) {
    return nullptr;
 }
 
+// Makes a new text file pointing to the current directory.
 inode_ptr directory::mkfile (const string& filename) {
+   inode_ptr file = make_shared<inode>(file_type::PLAIN_TYPE);
+   file->set_name(filename);
    DEBUGF ('i', filename);
-   return nullptr;
+   return file;
 }
 

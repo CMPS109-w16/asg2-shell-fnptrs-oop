@@ -1,4 +1,6 @@
 // $Id: commands.cpp,v 1.16 2016-01-14 16:10:40-08 - - $
+// Partner: Darius Sakhapour(dsakhapo@ucsc.edu)
+// Partner: Ryan Wong (rystwong@ucsc.edu)
 
 #include "commands.h"
 #include "debug.h"
@@ -76,6 +78,7 @@ void fn_lsr (inode_state& state, const wordvec& words){
 }
 
 void fn_make (inode_state& state, const wordvec& words){
+   state.create_file(state.get_cwd(), words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

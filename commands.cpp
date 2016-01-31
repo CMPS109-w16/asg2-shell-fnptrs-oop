@@ -6,6 +6,7 @@
 #include "debug.h"
 
 command_hash cmd_hash {
+   {"#"     , fn_comm  },
    {"cat"   , fn_cat   },
    {"cd"    , fn_cd    },
    {"echo"  , fn_echo  },
@@ -38,6 +39,13 @@ int exit_status_message() {
    int exit_status = exit_status::get();
    cout << execname() << ": exit(" << exit_status << ")" << endl;
    return exit_status;
+}
+
+// Comment function. Doesn't return or do anything.
+void fn_comm (inode_state& state, const wordvec& words){
+   // This has been intentionally left empty;
+   DEBUGF ('c', state);
+   DEBUGF ('c', words);
 }
 
 void fn_cat (inode_state& state, const wordvec& words){

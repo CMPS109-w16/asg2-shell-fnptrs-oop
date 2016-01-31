@@ -27,6 +27,7 @@ class command_error: public runtime_error {
 
 // execution functions -
 
+void fn_comm   (inode_state& state, const wordvec& words);
 void fn_cat    (inode_state& state, const wordvec& words);
 void fn_cd     (inode_state& state, const wordvec& words);
 void fn_echo   (inode_state& state, const wordvec& words);

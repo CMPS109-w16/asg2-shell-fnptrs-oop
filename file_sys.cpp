@@ -61,6 +61,10 @@ inode_state::inode_state() {
 // Shows the prompt character in console.
 const string& inode_state::prompt() { return prompt_; }
 
+void inode_state::print_path(const inode_ptr& curr_dir) const {
+   vector<string> path;
+}
+
 // Prints the directory after being called by ls and lsr.
 // Pulls information from directory contents, and displays them in
 // an orderly manner.

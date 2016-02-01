@@ -105,21 +105,35 @@ void inode_state::create_file
    curr_dir->contents->set_contents(dirents);
 }
 
+// Reads a plain file and outputs its text.
+// Captures the current directory and its contents, scans each one to
+// see if a content name matches the given search name, checks to make
+// sure it is a readable file, and then outputs the file's word vector.
 void inode_state::read_file(const inode_ptr& curr_dir,
          const wordvec& words) const {
+   bool file_found = false;      // Flags true if file found.
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
-      if (i->second->contents->is_dir() == false) {
-         if (i->first == words.at(1)) {
-            for(auto j = i->second->contents->readfile().begin();
-                     j != i->second->contents->readfile().end(); ++j)
-            {
+      // Search to see if a file or directory shares the name.
+      if ((i->first == words.at(1)) && (i != dirents.cend())) {
+         // See if the matching file is a directory.
+         if (i->second->contents->is_dir() == false) {
+            file_found = true;
+            for (auto j = i->second->contents->readfile().begin();
+                     j != i->second->contents->readfile().end(); ++j) {
                cout << *j << " ";
             }
+            // If the match is a directory, throw an error.
+         } else if (i->second->contents->is_dir() == true) {
+            throw file_error("fn_cat: cannot read directories.");
          }
+         cout << endl;
       }
    }
-   cout << endl;
+   // If there are no matches in the directory's entities, error.
+   if (!file_found) {
+      throw file_error("fn_cat: file not found.");
+   }
 }
 
 //        *********************************************

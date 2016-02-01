@@ -123,10 +123,11 @@ void inode_state::create_file
 // Captures the current directory and its contents, scans each one to
 // see if a content name matches the given search name, checks to make
 // sure it is a readable file, and then outputs the file's word vector.
+// If cat calls multiple arguments, each argument is treated as a file
+// name, and each file's output is displayed.
 void inode_state::read_file(const inode_ptr& curr_dir,
          const wordvec& words) const {
 for(size_t k = 1; k != words.size(); ++k) {
-
    bool file_found = false;      // Flags true if file found.
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {

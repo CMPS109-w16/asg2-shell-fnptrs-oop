@@ -10,7 +10,7 @@ using namespace std;
 
 #include "debug.h"
 #include "file_sys.h"
-
+#include "commands.h"
 int inode::next_inode_nr {1};
 
 //        *********************************************
@@ -119,22 +119,58 @@ void inode_state::create_file
    curr_dir->contents->set_contents(dirents);
 }
 
-// WIP function.
-void inode_state::read_file(const inode_ptr& curr_dir,
-         const wordvec& words) const {
+// Reads a plain file and outputs its text.
+// Captures the current directory and its contents, scans each one to
+// see if a content name matches the given search name, checks to make
+// sure it is a readable file, and then outputs the file's word vector.
+void inode_state::read_file
+(const inode_ptr& curr_dir, const wordvec& words) const {
+   bool file_found = false;      // Flags true if file found.
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
-      if (i->second->contents->is_dir() == false) {
-         if (i->first == words.at(1)) {
-            for(auto j = i->second->contents->readfile().begin();
-                     j != i->second->contents->readfile().end(); ++j)
-            {
+      // Search to see if a file or directory shares the name.
+      if (i->first == words.at(1)) {
+         // See if the matching file is a directory.
+         if (i->second->contents->is_dir() == false) {
+            file_found = true;
+            for (auto j = i->second->contents->readfile().begin();
+                     j != i->second->contents->readfile().end(); ++j) {
                cout << *j << " ";
             }
+            // If the match is a directory, throw an error.
+         } else if (i->second->contents->is_dir() == true) {
+            throw command_error("fn_cat: cannot read directories.");
          }
+         cout << endl;
       }
    }
-   cout << endl;
+   // If there are no matches in the directory's entities, error.
+   if (!file_found) {
+      throw command_error("fn_cat: file not found.");
+   }
+}
+
+void inode_state::make_directory
+(const inode_ptr& curr_dir, const wordvec& path) const {
+   if(path.size() == 2){
+      map<string, inode_ptr> dirents = curr_dir->
+                contents->get_contents();
+      //Check to see if a dir or file with the same name exists
+      for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
+         if(i->first == path.at(1) or i->first == path.at(1) + "/"){
+            throw command_error("make_directory: "
+                     "file or dir exists already");
+         }
+      }
+      inode_ptr new_dir = curr_dir->contents->mkdir(path.at(1));
+      new_dir->contents->set_dir(new_dir, curr_dir);
+      dirents.insert(pair<string, inode_ptr>
+      (new_dir->get_name(), new_dir));
+      curr_dir->contents->set_contents(dirents);
+   }
+   else{
+
+   }
 }
 
 //        *********************************************
@@ -271,8 +307,10 @@ void directory::remove (const string& filename) {
 }
 
 inode_ptr directory::mkdir (const string& dirname) {
+   inode_ptr new_dir = make_shared<inode>(file_type::DIRECTORY_TYPE);
+   new_dir->set_name(dirname + "/");
    DEBUGF ('i', dirname);
-   return nullptr;
+   return new_dir;
 }
 
 // Makes a new text file pointing to the current directory.

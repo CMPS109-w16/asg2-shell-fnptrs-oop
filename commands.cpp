@@ -97,6 +97,11 @@ void fn_make (inode_state& state, const wordvec& words){
 }
 
 void fn_mkdir (inode_state& state, const wordvec& words){
+   if(words.size() == 1) throw command_error("fn_mkdir: no arg");
+   else if(words.size() == 2){
+      state.make_directory(state.get_cwd(), words);
+   }
+   else throw command_error("fn_mkdir: invalid arg");
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

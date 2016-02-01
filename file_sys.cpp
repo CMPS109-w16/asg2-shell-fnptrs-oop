@@ -152,25 +152,29 @@ void inode_state::read_file
 
 void inode_state::make_directory
 (const inode_ptr& curr_dir, const wordvec& path) const {
-   if(path.size() == 2){
+      wordvec path_name = split(path.at(1), "/");
       map<string, inode_ptr> dirents = curr_dir->
-                contents->get_contents();
-      //Check to see if a dir or file with the same name exists
-      for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
-         if(i->first == path.at(1) or i->first == path.at(1) + "/"){
-            throw command_error("make_directory: "
-                     "file or dir exists already");
+               contents->get_contents();
+      inode_ptr mk_dir = curr_dir; bool dir_found = false;
+      for(size_t i = 0; i < path_name.size() - 1; ++i){
+         dir_found = false;
+         for(auto j = dirents.cbegin(); j != dirents.cend(); ++j){
+            if(j->first == path_name.at(i) + "/"){
+               mk_dir = j->second;
+               dir_found = true;
+            }
          }
+         if(dir_found == false){
+            throw command_error("make_directory: invalid pathname");
+         }
+         dirents = mk_dir->contents->get_contents();
       }
-      inode_ptr new_dir = curr_dir->contents->mkdir(path.at(1));
-      new_dir->contents->set_dir(new_dir, curr_dir);
+      inode_ptr new_dir = mk_dir->contents->mkdir
+               (path_name.at(path_name.size() - 1));
+      new_dir->contents->set_dir(new_dir, mk_dir);
       dirents.insert(pair<string, inode_ptr>
       (new_dir->get_name(), new_dir));
-      curr_dir->contents->set_contents(dirents);
-   }
-   else{
-
-   }
+      mk_dir->contents->set_contents(dirents);
 }
 
 //        *********************************************

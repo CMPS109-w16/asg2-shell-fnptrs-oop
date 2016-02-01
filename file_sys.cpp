@@ -114,15 +114,19 @@ void inode_state::create_file(const inode_ptr& curr_dir,
    }      // If no words in mkfile command, make an empty file.
    else
       data.push_back("");
-   //Check to see if a dir with the same name exists
+   //Check to see if a dir or a file with the same name exists
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
-      if (i->first == words.at(1) or i->first == words.at(1) + "/") {
+      // If the file has the same name as a directory, throw an error.
+      if (i->first == words.at(1) + "/") {
          throw command_error("make_directory: "
                   "directory has same name");
+         // If the file has the same name as an existing file, replace
+         // the existing file with the new one (including new data).
+      } else if (i->first == words.at(1)) {
+         file = i->second;
       }
    }
-
    file->contents->set_data(data);
    dirents.insert(pair<string, inode_ptr>(file->get_name(), file));
    curr_dir->contents->set_contents(dirents);

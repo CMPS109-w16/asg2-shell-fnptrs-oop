@@ -125,11 +125,14 @@ void fn_mkdir (inode_state& state, const wordvec& words){
 }
 
 // Changes the character to be used as the prompt character.
+// If the prompt has multiple words, add a space between words.
+// The last space acts as the prompt terminating space.
 void fn_prompt (inode_state& state, const wordvec& words){
    string new_prompt = "";
-   for(size_t i = 1; i < words.size(); ++i) new_prompt += words.at(i);
-   //If there's no trailing space, add one for looks.
-   if(words.at(words.size() - 1) != " ") new_prompt += ' ';
+   for(size_t i = 1; i < words.size(); ++i){
+      new_prompt += words.at(i);
+      new_prompt += " ";
+   }
    state.set_prompt(new_prompt);
    DEBUGF ('c', state);
    DEBUGF ('c', words);

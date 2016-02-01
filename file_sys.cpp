@@ -10,6 +10,7 @@ using namespace std;
 
 #include "debug.h"
 #include "file_sys.h"
+#include "commands.h"
 
 int inode::next_inode_nr {1};
 
@@ -125,14 +126,14 @@ void inode_state::read_file(const inode_ptr& curr_dir,
             }
             // If the match is a directory, throw an error.
          } else if (i->second->contents->is_dir() == true) {
-            throw file_error("fn_cat: cannot read directories.");
+            throw command_error("fn_cat: cannot read directories.");
          }
          cout << endl;
       }
    }
    // If there are no matches in the directory's entities, error.
    if (!file_found) {
-      throw file_error("fn_cat: file not found.");
+      throw command_error("fn_cat: file not found.");
    }
 }
 

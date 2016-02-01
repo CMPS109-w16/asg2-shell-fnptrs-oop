@@ -71,9 +71,30 @@ void fn_echo (inode_state& state, const wordvec& words){
    cout << word_range (words.cbegin() + 1, words.cend()) << endl;
 }
 
-void fn_exit (inode_state& state, const wordvec& words){
-   DEBUGF ('c', state);
-   DEBUGF ('c', words);
+// Exit function. If exit is called with arguments, the arguments are
+// parsed as exit status. If the argument is an int, that int will be
+// returned. If it is not an int, the int 127 will be passed instead.
+void fn_exit(inode_state& state, const wordvec& words) {
+   if (words.size() > 1) {
+      exit_status e;
+      string s = "";
+      bool alpha = false;
+      for (size_t i = 1; i < words.size(); ++i)
+         s += words.at(i);
+
+      for (size_t j = 0; j != s.size(); ++j) {
+         if (isalpha(s[j]) == true) {
+            alpha = true;
+         }
+      }
+      if (alpha == true) {
+         e.set(127);
+      } else {
+            e.set(stoi(s));
+         }
+      }
+   DEBUGF('c', state);
+   DEBUGF('c', words);
    throw ysh_exit();
 }
 

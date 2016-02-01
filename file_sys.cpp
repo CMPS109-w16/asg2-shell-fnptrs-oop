@@ -115,7 +115,7 @@ void inode_state::read_file(const inode_ptr& curr_dir,
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
       // Search to see if a file or directory shares the name.
-      if ((i->first == words.at(1)) && (i != dirents.cend())) {
+      if ((i->first == words.at(1))) {
          // See if the matching file is a directory.
          if (i->second->contents->is_dir() == false) {
             file_found = true;

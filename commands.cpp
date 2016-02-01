@@ -48,14 +48,12 @@ void fn_comm(inode_state& state, const wordvec& words) {
    DEBUGF('c', words);
 }
 
+// Function that reads the words inside of a plain file.
 void fn_cat(inode_state& state, const wordvec& words) {
-   if(words.size() == 1){
+   if(words.size() == 1)
       throw command_error("fn_cat: no args specified");
-   }else if (words.size() == 2) {
+   if (words.size() > 1)
       state.read_file(state.get_cwd(), words);
-   } else {
-      throw command_error("fn_cat: incorrect number of args specified");
-   }
       DEBUGF('c', state);
       DEBUGF('c', words);
 }
@@ -70,6 +68,7 @@ void fn_echo (inode_state& state, const wordvec& words){
    DEBUGF ('c', words);
    cout << word_range (words.cbegin() + 1, words.cend()) << endl;
 }
+
 
 // Exit function. If exit is called with arguments, the arguments are
 // parsed as exit status. If the argument is an int, that int will be
@@ -120,6 +119,11 @@ void fn_make (inode_state& state, const wordvec& words){
 }
 
 void fn_mkdir (inode_state& state, const wordvec& words){
+   if(words.size() == 1) throw command_error("fn_mkdir: no arg");
+   else if(words.size() == 2){
+      state.make_directory(state.get_cwd(), words);
+   }
+   else throw command_error("fn_mkdir: invalid arg");
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

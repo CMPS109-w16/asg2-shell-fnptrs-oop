@@ -11,7 +11,6 @@ using namespace std;
 #include "debug.h"
 #include "file_sys.h"
 #include "commands.h"
-
 int inode::next_inode_nr {1};
 
 //        *********************************************
@@ -64,6 +63,20 @@ const string& inode_state::prompt() { return prompt_; }
 
 void inode_state::print_path(const inode_ptr& curr_dir) const {
    vector<string> path;
+   path.push_back(curr_dir->get_name());
+   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
+   inode_ptr parent = dirents.at("..");
+   while(parent->get_inode_nr() > 1){
+      path.push_back(parent->get_name());
+      map<string, inode_ptr> dirents = parent->contents->get_contents();
+      parent = dirents.at("..");
+   }
+   for(auto i = path.cend() - 1; i != path.cbegin() - 1; --i){
+      if(i == path.cend() - 1) cout << *i;
+      else if(i > path.cbegin()) cout << *i << "/";
+      else cout << *i;
+   }
+   cout << endl;
 }
 
 // Prints the directory after being called by ls and lsr.
@@ -112,11 +125,13 @@ void inode_state::create_file
 // sure it is a readable file, and then outputs the file's word vector.
 void inode_state::read_file(const inode_ptr& curr_dir,
          const wordvec& words) const {
+for(size_t k = 1; k != words.size(); ++k) {
+
    bool file_found = false;      // Flags true if file found.
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
       // Search to see if a file or directory shares the name.
-      if ((i->first == words.at(1))) {
+      if (i->first == words.at(k)) {
          // See if the matching file is a directory.
          if (i->second->contents->is_dir() == false) {
             file_found = true;
@@ -134,6 +149,30 @@ void inode_state::read_file(const inode_ptr& curr_dir,
    // If there are no matches in the directory's entities, error.
    if (!file_found) {
       throw command_error("fn_cat: file not found.");
+   }
+}
+}
+
+void inode_state::make_directory
+(const inode_ptr& curr_dir, const wordvec& path) const {
+   if(path.size() == 2){
+      map<string, inode_ptr> dirents = curr_dir->
+                contents->get_contents();
+      //Check to see if a dir or file with the same name exists
+      for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
+         if(i->first == path.at(1) or i->first == path.at(1) + "/"){
+            throw command_error("make_directory: "
+                     "file or dir exists already");
+         }
+      }
+      inode_ptr new_dir = curr_dir->contents->mkdir(path.at(1));
+      new_dir->contents->set_dir(new_dir, curr_dir);
+      dirents.insert(pair<string, inode_ptr>
+      (new_dir->get_name(), new_dir));
+      curr_dir->contents->set_contents(dirents);
+   }
+   else{
+
    }
 }
 
@@ -270,9 +309,12 @@ void directory::remove (const string& filename) {
    DEBUGF ('i', filename);
 }
 
+// Makes a new default directory in the current directory.
 inode_ptr directory::mkdir (const string& dirname) {
+   inode_ptr new_dir = make_shared<inode>(file_type::DIRECTORY_TYPE);
+   new_dir->set_name(dirname + "/");
    DEBUGF ('i', dirname);
-   return nullptr;
+   return new_dir;
 }
 
 // Makes a new text file pointing to the current directory.

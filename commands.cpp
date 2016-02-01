@@ -48,12 +48,12 @@ void fn_comm(inode_state& state, const wordvec& words) {
    DEBUGF('c', words);
 }
 
-// Function that reads the words inside of a plain file.
 void fn_cat(inode_state& state, const wordvec& words) {
    if(words.size() == 1)
       throw command_error("fn_cat: no args specified");
-   if (words.size() > 1)
+   if (words.size() == 2) {
       state.read_file(state.get_cwd(), words);
+   }
       DEBUGF('c', state);
       DEBUGF('c', words);
 }
@@ -69,11 +69,10 @@ void fn_echo (inode_state& state, const wordvec& words){
    cout << word_range (words.cbegin() + 1, words.cend()) << endl;
 }
 
-
 // Exit function. If exit is called with arguments, the arguments are
 // parsed as exit status. If the argument is an int, that int will be
 // returned. If it is not an int, the int 127 will be passed instead.
-void fn_exit(inode_state& state, const wordvec& words) {
+void fn_exit (inode_state& state, const wordvec& words){
    if (words.size() > 1) {
       exit_status e;
       string s = "";
@@ -89,11 +88,11 @@ void fn_exit(inode_state& state, const wordvec& words) {
       if (alpha == true) {
          e.set(127);
       } else {
-            e.set(stoi(s));
-         }
+         e.set(stoi(s));
       }
-   DEBUGF('c', state);
-   DEBUGF('c', words);
+   }
+   DEBUGF ('c', state);
+   DEBUGF ('c', words);
    throw ysh_exit();
 }
 
@@ -129,11 +128,9 @@ void fn_mkdir (inode_state& state, const wordvec& words){
 }
 
 // Changes the character to be used as the prompt character.
-// If the prompt has multiple words, add a space between words.
-// The last space acts as the prompt terminating space.
 void fn_prompt (inode_state& state, const wordvec& words){
    string new_prompt = "";
-   for(size_t i = 1; i < words.size(); ++i){
+   for (size_t i = 1; i < words.size(); ++i) {
       new_prompt += words.at(i);
       new_prompt += " ";
    }

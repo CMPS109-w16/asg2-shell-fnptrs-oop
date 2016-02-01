@@ -51,7 +51,7 @@ void fn_comm(inode_state& state, const wordvec& words) {
 void fn_cat(inode_state& state, const wordvec& words) {
    if(words.size() == 1)
       throw command_error("fn_cat: no args specified");
-   if (words.size() == 2) {
+   if (words.size() > 1) {
       state.read_file(state.get_cwd(), words);
    }
       DEBUGF('c', state);
@@ -99,7 +99,7 @@ void fn_exit (inode_state& state, const wordvec& words){
 // Displays the entities within a current directory, including files
 // and other directories.
 void fn_ls (inode_state& state, const wordvec& words){
-   if(words.size() == 1){
+   if(words.size() <= 2){
       state.print_directory(state.get_cwd(), words);
    }
    DEBUGF ('c', state);

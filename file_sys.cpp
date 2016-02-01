@@ -90,13 +90,66 @@ void inode_state::print_path(const inode_ptr& curr_dir) const {
 // The directory listings will show the inode number, directory/file
 // size, and the name of the contents (directory or plain file) inside
 // in that order.
-void inode_state::print_directory
-(const inode_ptr& curr_dir, const wordvec& args) const {
-   cout << curr_dir->get_name() << ":" << endl;
-   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
-   for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
+void inode_state::print_directory(const inode_ptr& curr_dir,
+         const wordvec& args) const {
+   if (args.size() == 1) {
+      cout << curr_dir->get_name() << ":" << endl;
+      map<string, inode_ptr> dirents =
+               curr_dir->contents->get_contents();
+      for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
          cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
-             << i->second->contents->size() << "  " << i->first << endl;
+                  << i->second->contents->size() << "  " << i->first
+                  << endl;
+      }
+   } else if (args.size() > 1) {
+      wordvec path_name = split(args.at(1), "/");
+      map<string, inode_ptr> dirents =
+               curr_dir->contents->get_contents();
+      // mk_dir will search for the directory that the new directory
+      // will be created in.
+      // dir_found isolates directories that return correct directory
+      // locations. Used to navigate towards the given directory.
+      inode_ptr mk_dir = curr_dir;
+      bool dir_found = false;
+      // Walks through the list of path names, comparing them against
+      // the path names within the current directory.
+      for (size_t i = 0; i < path_name.size(); ++i) {
+         dir_found = false;
+         for (auto j = dirents.cbegin(); j != dirents.cend(); ++j) {
+            // If the given pathname matches one being walked through
+            // in the current directory, move the mk_dir into the
+            // that pathname.
+            if (j->first == path_name.at(i) + "/") {
+               mk_dir = j->second;
+               dir_found = true;
+            }
+         }
+         if (dir_found == false) {
+            throw command_error("make_directory: invalid pathname");
+         }
+         // Once in the new directory, get its current contents.
+         dirents = mk_dir->contents->get_contents();
+         // This searching crawl method will be repeated until
+         // either the given directory is made with the new
+         // directory inside of it, or an error is found.
+      }
+      // new_dir is inode for the directory being made.
+      // It is inserted into its own parent directory, since new_dir represents
+      // the directory being created.
+
+      // Fix for name. Moves the / from the end of the name to begin.
+      string name_fix = mk_dir->get_name();
+      name_fix.pop_back();
+      name_fix = "/" + name_fix;
+
+      cout << name_fix << ":" << endl;
+      for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+         cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
+                  << i->second->contents->size() << "  " << i->first
+                  << endl;
+      }
+   } else {
+      throw command_error("make_directory: invalid number of arguments");
    }
 }
 

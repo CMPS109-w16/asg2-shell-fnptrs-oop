@@ -61,6 +61,10 @@ inode_state::inode_state() {
 // Shows the prompt character in console.
 const string& inode_state::prompt() { return prompt_; }
 
+void inode_state::print_path(const inode_ptr& curr_dir) const {
+   vector<string> path;
+}
+
 // Prints the directory after being called by ls and lsr.
 // Pulls information from directory contents, and displays them in
 // an orderly manner.
@@ -73,15 +77,8 @@ void inode_state::print_directory
    cout << curr_dir->get_name() << ":" << endl;
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
-      // First if checks if the current inode points to a file.
-      if(curr_dir->contents->is_dir(i->second) == false){
          cout << setw(6) << i->second->get_inode_nr() << setw(6)
              << i->second->contents->size() << "  " << i->first << endl;
-      }
-      else{       // If the current inode points to a directory.
-         cout << setw(6) << i->second->get_inode_nr() << setw(6)
-             << i->second->contents->size() << "  " << i->first << endl;
-      }
    }
 }
 
@@ -108,20 +105,21 @@ void inode_state::create_file
    curr_dir->contents->set_contents(dirents);
 }
 
-// WIP function.
 void inode_state::read_file(const inode_ptr& curr_dir,
          const wordvec& words) const {
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
-      if ((curr_dir->contents->is_dir(i->second) == false)) {
+      if (i->second->contents->is_dir() == false) {
          if (i->first == words.at(1)) {
-            for( auto ii = i->second->contents->readfile().begin(); ii !=i->second->contents->readfile().end(); ++ii)
+            for(auto j = i->second->contents->readfile().begin();
+                     j != i->second->contents->readfile().end(); ++j)
             {
-               cout << *ii;
+               cout << *j << " ";
             }
          }
       }
    }
+   cout << endl;
 }
 
 //        *********************************************

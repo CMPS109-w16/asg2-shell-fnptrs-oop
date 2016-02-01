@@ -49,8 +49,12 @@ void fn_comm(inode_state& state, const wordvec& words) {
 }
 
 void fn_cat(inode_state& state, const wordvec& words) {
-   if (words.size() == 1) {
+   if(words.size() == 1){
+      throw command_error("fn_cat: no args specified");
+   }else if (words.size() == 2) {
       state.read_file(state.get_cwd(), words);
+   } else {
+      throw command_error("fn_cat: incorrect number of args specified");
    }
       DEBUGF('c', state);
       DEBUGF('c', words);
@@ -111,6 +115,7 @@ void fn_prompt (inode_state& state, const wordvec& words){
 }
 
 void fn_pwd (inode_state& state, const wordvec& words){
+   if(words.size() == 1) state.print_path(state.get_cwd());
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

@@ -63,6 +63,20 @@ const string& inode_state::prompt() { return prompt_; }
 
 void inode_state::print_path(const inode_ptr& curr_dir) const {
    vector<string> path;
+   path.push_back(curr_dir->get_name());
+   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
+   inode_ptr parent = dirents.at("..");
+   while(parent->get_inode_nr() > 1){
+      path.push_back(parent->get_name());
+      map<string, inode_ptr> dirents = parent->contents->get_contents();
+      parent = dirents.at("..");
+   }
+   for(auto i = path.cend() - 1; i != path.cbegin() - 1; --i){
+      if(i == path.cend() - 1) cout << *i;
+      else if(i > path.cbegin()) cout << *i << "/";
+      else cout << *i;
+   }
+   cout << endl;
 }
 
 // Prints the directory after being called by ls and lsr.

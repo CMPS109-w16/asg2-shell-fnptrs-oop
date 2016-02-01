@@ -114,7 +114,7 @@ class base_file {
       virtual map<string, inode_ptr>& get_contents() = 0;
       virtual void set_contents(const map<string, inode_ptr>&) = 0;
       virtual void set_data(const wordvec& d) = 0;
-      virtual bool is_dir(const inode_ptr&) = 0;
+      virtual bool is_dir() = 0;
 };
 
 // class plain_file -
@@ -140,7 +140,7 @@ class plain_file: public base_file {
       virtual map<string, inode_ptr>& get_contents() override;
       virtual void set_contents(const map<string, inode_ptr>&) override;
       virtual void set_data(const wordvec& d)override {data = d;}
-      virtual bool is_dir(const inode_ptr&) override {return false;}
+      virtual bool is_dir() override {return false;}
 };
 
 // class directory -
@@ -179,7 +179,7 @@ class directory: public base_file {
       virtual map<string, inode_ptr>& get_contents() override;
       virtual void set_contents(const map<string, inode_ptr>&) override;
       virtual void set_data(const wordvec& d)override;
-      virtual bool is_dir(const inode_ptr&) override {return true;}
+      virtual bool is_dir() override {return true;}
 };
 
 #endif

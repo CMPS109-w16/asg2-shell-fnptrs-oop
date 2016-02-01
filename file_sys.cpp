@@ -91,7 +91,7 @@ void inode_state::print_directory
    cout << curr_dir->get_name() << ":" << endl;
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
-         cout << setw(6) << i->second->get_inode_nr() << setw(6)
+         cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
              << i->second->contents->size() << "  " << i->first << endl;
    }
 }
@@ -99,22 +99,31 @@ void inode_state::print_directory
 // Creates a new file for mkfile command, parses out the words to be
 // included in the file itself, then sets the pointers to put the file
 // within the current directory.
-void inode_state::create_file
-(const inode_ptr& curr_dir, const wordvec& words) const {
+void inode_state::create_file(const inode_ptr& curr_dir,
+         const wordvec& words) const {
    inode_ptr file = curr_dir->contents->mkfile(words.at(1));
    vector<string> data;
    // If the mkfile command is meant to add words to the file.
-   if(words.size() > 2){
+   if (words.size() > 2) {
       // Start at 2, since the first two positions in the vector
       // point to the command function and the file name. Everything
       // after that are words to be added to the function.
-      for(size_t i = 2; i < words.size(); ++i){
+      for (size_t i = 2; i < words.size(); ++i) {
          data.push_back(words.at(i));
       }
    }      // If no words in mkfile command, make an empty file.
-   else data.push_back("");
-   file->contents->set_data(data);
+   else
+      data.push_back("");
+   //Check to see if a dir with the same name exists
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
+   for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+      if (i->first == words.at(1) or i->first == words.at(1) + "/") {
+         throw command_error("make_directory: "
+                  "directory has same name");
+      }
+   }
+
+   file->contents->set_data(data);
    dirents.insert(pair<string, inode_ptr>(file->get_name(), file));
    curr_dir->contents->set_contents(dirents);
 }

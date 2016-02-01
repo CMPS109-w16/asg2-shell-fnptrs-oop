@@ -91,7 +91,7 @@ void inode_state::print_directory
    cout << curr_dir->get_name() << ":" << endl;
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
    for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
-         cout << setw(6) << i->second->get_inode_nr() << setw(6)
+         cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
              << i->second->contents->size() << "  " << i->first << endl;
    }
 }
@@ -104,17 +104,30 @@ void inode_state::create_file
    inode_ptr file = curr_dir->contents->mkfile(words.at(1));
    vector<string> data;
    // If the mkfile command is meant to add words to the file.
-   if(words.size() > 2){
+   if (words.size() > 2) {
       // Start at 2, since the first two positions in the vector
       // point to the command function and the file name. Everything
       // after that are words to be added to the function.
-      for(size_t i = 2; i < words.size(); ++i){
+      for (size_t i = 2; i < words.size(); ++i) {
          data.push_back(words.at(i));
       }
    }      // If no words in mkfile command, make an empty file.
-   else data.push_back("");
-   file->contents->set_data(data);
+   else
+      data.push_back("");
+   //Check to see if a dir or a file with the same name exists
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
+   for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+      // If the file has the same name as a directory, throw an error.
+      if (i->first == words.at(1) + "/") {
+         throw command_error("make_directory: "
+                  "directory has same name");
+         // If the file has the same name as an existing file, replace
+         // the existing file with the new one (including new data).
+      } else if (i->first == words.at(1)) {
+         file = i->second;
+      }
+   }
+   file->contents->set_data(data);
    dirents.insert(pair<string, inode_ptr>(file->get_name(), file));
    curr_dir->contents->set_contents(dirents);
 }
@@ -123,30 +136,34 @@ void inode_state::create_file
 // Captures the current directory and its contents, scans each one to
 // see if a content name matches the given search name, checks to make
 // sure it is a readable file, and then outputs the file's word vector.
-void inode_state::read_file
-(const inode_ptr& curr_dir, const wordvec& words) const {
-   bool file_found = false;      // Flags true if file found.
-   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
-   for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
-      // Search to see if a file or directory shares the name.
-      if (i->first == words.at(1)) {
-         // See if the matching file is a directory.
-         if (i->second->contents->is_dir() == false) {
-            file_found = true;
-            for (auto j = i->second->contents->readfile().begin();
-                     j != i->second->contents->readfile().end(); ++j) {
-               cout << *j << " ";
+void inode_state::read_file(const inode_ptr& curr_dir,
+         const wordvec& words) const {
+   for (size_t k = 1; k != words.size(); ++k) {
+      bool file_found = false;      // Flags true if file found.
+      map<string, inode_ptr> dirents =
+               curr_dir->contents->get_contents();
+      for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+         // Search to see if a file or directory shares the name.
+         if (i->first == words.at(k)) {
+            // See if the matching file is a directory.
+            if (i->second->contents->is_dir() == false) {
+               file_found = true;
+               for (auto j = i->second->contents->readfile().begin();
+                        j != i->second->contents->readfile().end();
+                        ++j) {
+                  cout << *j << " ";
+               }
+               // If the match is a directory, throw an error.
+            } else if (i->second->contents->is_dir() == true) {
+               throw command_error("fn_cat: cannot read directories.");
             }
-            // If the match is a directory, throw an error.
-         } else if (i->second->contents->is_dir() == true) {
-            throw command_error("fn_cat: cannot read directories.");
+            cout << endl;
          }
-         cout << endl;
       }
-   }
-   // If there are no matches in the directory's entities, error.
-   if (!file_found) {
-      throw command_error("fn_cat: file not found.");
+      // If there are no matches in the directory's entities, error.
+      if (!file_found) {
+         throw command_error("fn_cat: file not found.");
+      }
    }
 }
 

@@ -69,7 +69,28 @@ void fn_echo (inode_state& state, const wordvec& words){
    cout << word_range (words.cbegin() + 1, words.cend()) << endl;
 }
 
+// Exit function. If exit is called with arguments, the arguments are
+// parsed as exit status. If the argument is an int, that int will be
+// returned. If it is not an int, the int 127 will be passed instead.
 void fn_exit (inode_state& state, const wordvec& words){
+   if (words.size() > 1) {
+      exit_status e;
+      string s = "";
+      bool alpha = false;
+      for (size_t i = 1; i < words.size(); ++i)
+         s += words.at(i);
+
+      for (size_t j = 0; j != s.size(); ++j) {
+         if (isalpha(s[j]) == true) {
+            alpha = true;
+         }
+      }
+      if (alpha == true) {
+         e.set(127);
+      } else {
+         e.set(stoi(s));
+      }
+   }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
    throw ysh_exit();
@@ -109,9 +130,10 @@ void fn_mkdir (inode_state& state, const wordvec& words){
 // Changes the character to be used as the prompt character.
 void fn_prompt (inode_state& state, const wordvec& words){
    string new_prompt = "";
-   for(size_t i = 1; i < words.size(); ++i) new_prompt += words.at(i);
-   //If there's no trailing space, add one for looks.
-   if(words.at(words.size() - 1) != " ") new_prompt += ' ';
+   for (size_t i = 1; i < words.size(); ++i) {
+      new_prompt += words.at(i);
+      new_prompt += " ";
+   }
    state.set_prompt(new_prompt);
    DEBUGF ('c', state);
    DEBUGF ('c', words);

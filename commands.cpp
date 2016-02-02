@@ -57,8 +57,9 @@ void fn_cat(inode_state& state, const wordvec& words) {
       DEBUGF('c', state);
       DEBUGF('c', words);
 }
-
+//NEED TO DO
 void fn_cd (inode_state& state, const wordvec& words){
+   state.change_directory(state, words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
@@ -99,13 +100,13 @@ void fn_exit (inode_state& state, const wordvec& words){
 // Displays the entities within a current directory, including files
 // and other directories.
 void fn_ls (inode_state& state, const wordvec& words){
-   if(words.size() == 1){
+   if(words.size() <= 2){
       state.print_directory(state.get_cwd(), words);
    }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
-
+//NEED TO DO
 void fn_lsr (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -144,12 +145,12 @@ void fn_pwd (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
-
+//NEED TO DO
 void fn_rm (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
-
+//NEED TO DO
 void fn_rmr (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);

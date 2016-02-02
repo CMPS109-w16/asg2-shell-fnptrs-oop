@@ -88,11 +88,43 @@ void inode_state::print_path(const inode_ptr& curr_dir) const {
 // in that order.
 void inode_state::print_directory
 (const inode_ptr& curr_dir, const wordvec& args) const {
-   cout << curr_dir->get_name() << ":" << endl;
    map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
-   for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
+   if(args.size() == 1){
+      cout << curr_dir->get_name() << ":" << endl;
+      for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
          cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
              << i->second->contents->size() << "  " << i->first << endl;
+      }
+   }
+   else{
+      wordvec path_name = split(args.at(1), "/");
+      inode_ptr ls_dir = curr_dir; bool dir_found = false;
+      for(size_t i = 0; i < path_name.size(); ++i){
+         dir_found = false;
+         for(auto j = dirents.cbegin(); j != dirents.cend(); ++j){
+            if(j->first == path_name.at(i) + "/"){
+               ls_dir = j->second;
+               dir_found = true;
+            }
+            /*else if(j->first == "." or j->first == ".."){
+               ls_dir = j->second;
+               dir_found = true;
+            }*/
+         }
+         if(dir_found == false){
+            throw command_error("print_directory: invalid pathname");
+         }
+         dirents = ls_dir->contents->get_contents();
+      }
+      string name_fix = ls_dir->get_name();
+      name_fix.pop_back();
+      name_fix = "/" + name_fix;
+      cout << name_fix << ":" << endl;
+      for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+         cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
+                  << i->second->contents->size() << "  " << i->first
+                  << endl;
+      }
    }
 }
 
@@ -219,6 +251,34 @@ void inode_state::make_directory
       dirents.insert(pair<string, inode_ptr>
       (new_dir->get_name(), new_dir));
       mk_dir->contents->set_contents(dirents);
+}
+
+void inode_state::change_directory
+(inode_state& curr_state, const wordvec& args){
+   if(args.size() == 1) cwd = curr_state.get_root();
+   else{
+      wordvec path_name = split(args.at(1), "/");
+      string path = args.at(1); inode_ptr cd;
+      path = path.at(0);
+      if(path == "/") cd = curr_state.get_root();
+      else cd = curr_state.get_cwd();
+      bool dir_found = false;
+      map<string, inode_ptr> dirents = cd->contents->get_contents();
+      for(size_t i = 0; i < path_name.size(); ++i){
+          dir_found = false;
+          for(auto j = dirents.cbegin(); j != dirents.cend(); ++j){
+             if(j->first == path_name.at(i) + "/"){
+                cd = j->second;
+                dir_found = true;
+             }
+          }
+          if(dir_found == false){
+             throw command_error("change_directory: invalid pathname");
+          }
+          dirents = cd->contents->get_contents();
+       }
+      cwd = cd;
+   }
 }
 
 //        *********************************************

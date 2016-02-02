@@ -57,7 +57,7 @@ void fn_cat(inode_state& state, const wordvec& words) {
       DEBUGF('c', state);
       DEBUGF('c', words);
 }
-//NEED TO DO
+
 void fn_cd (inode_state& state, const wordvec& words){
    state.change_directory(state, words);
    DEBUGF ('c', state);
@@ -106,8 +106,9 @@ void fn_ls (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
-//NEED TO DO
+
 void fn_lsr (inode_state& state, const wordvec& words){
+   state.list_recursively(state, words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

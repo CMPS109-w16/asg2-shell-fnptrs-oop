@@ -25,7 +25,7 @@ class directory;
 using inode_ptr = shared_ptr<inode>;
 using base_file_ptr = shared_ptr<base_file>;
 ostream& operator<< (ostream&, file_type);
-
+void lsr(inode_ptr&);
 // inode_state -
 //    A small convenient class to maintain the state of the simulated
 //    process:  the root (/), the current directory (.), and the
@@ -55,6 +55,8 @@ class inode_state {
       void print_path(const inode_ptr&) const;
       void make_directory(const inode_ptr&, const wordvec&) const;
       void change_directory(inode_state&, const wordvec&);
+      void list_recursively(inode_state&, const wordvec&);
+      friend void lsr(inode_ptr&);
 
 
 
@@ -85,6 +87,7 @@ class inode {
       int get_inode_nr() const;
       void set_name(string s) {name = s;}
       string get_name() const {return name;}
+      friend void lsr(inode_ptr&);
 
 };
 

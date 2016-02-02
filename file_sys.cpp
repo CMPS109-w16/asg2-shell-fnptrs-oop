@@ -41,6 +41,24 @@ file_error::file_error (const string& what):
             runtime_error (what) {
 }
 
+void lsr(inode_ptr& dir){
+   map<string, inode_ptr> dirents = dir->contents->get_contents();
+   cout << dir->get_name() << ":" << endl;
+   for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+      cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
+               << i->second->contents->size() << "  " << i->first
+               << endl;
+   }
+   for(auto i = dirents.begin(); i != dirents.end(); ++i){
+       if(i->first.compare(".") == 0 or i->first.compare("..") == 0);
+       else{
+          if(i->second->contents->is_dir()){
+             lsr(i->second);
+          }
+       }
+    }
+}
+
 //        ***************************************************
 //        ************** Inode State Functions **************
 //        ***************************************************
@@ -124,6 +142,46 @@ void inode_state::print_directory
          cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
                   << i->second->contents->size() << "  " << i->first
                   << endl;
+      }
+   }
+}
+
+void inode_state::list_recursively
+(inode_state& curr_state, const wordvec& args) {
+   wordvec path_name = split(args.at(1), "/");
+   string path = args.at(1);
+   path = path.at(0); inode_ptr lr;
+   if(path == "/") lr = root;
+   else lr = curr_state.get_cwd();
+   bool dir_found = false;
+   map<string, inode_ptr> dirents = lr->contents->get_contents();
+   for(size_t i = 0; i < path_name.size(); ++i){
+       dir_found = false;
+       for(auto j = dirents.cbegin(); j != dirents.cend(); ++j){
+          if(j->first == path_name.at(i) + "/"){
+             lr = j->second;
+             dir_found = true;
+          }
+       }
+       if(dir_found == false){
+          throw command_error("list_recursively: invalid pathname");
+       }
+       dirents = lr->contents->get_contents();
+    }
+   //print top layer dir
+   cout << lr->get_name() << ":" << endl;
+   for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+      cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
+               << i->second->contents->size() << "  " << i->first
+               << endl;
+   }
+   //Pass in each directory to be recursively listed, from the top layer
+   for(auto i = dirents.begin(); i != dirents.end(); ++i){
+      if(i->first.compare(".") == 0 or i->first.compare("..") == 0);
+      else{
+         if(i->second->contents->is_dir()){
+            lsr(i->second);
+         }
       }
    }
 }

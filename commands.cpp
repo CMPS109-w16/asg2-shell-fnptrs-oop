@@ -59,6 +59,7 @@ void fn_cat(inode_state& state, const wordvec& words) {
 }
 
 void fn_cd (inode_state& state, const wordvec& words){
+   state.change_directory(state, words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
@@ -105,18 +106,20 @@ void fn_ls (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
-
+//NEED TO DO
 void fn_lsr (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
 
+// Makes a new plain text file in the given directory.
 void fn_make (inode_state& state, const wordvec& words){
    state.create_file(state.get_cwd(), words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
 
+// Makes a new directory in the given directory.
 void fn_mkdir (inode_state& state, const wordvec& words){
    if(words.size() == 1) throw command_error("fn_mkdir: no arg");
    else if(words.size() == 2){
@@ -139,17 +142,18 @@ void fn_prompt (inode_state& state, const wordvec& words){
    DEBUGF ('c', words);
 }
 
+// Print working directory.
 void fn_pwd (inode_state& state, const wordvec& words){
    if(words.size() == 1) state.print_path(state.get_cwd());
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
-
+//NEED TO DO
 void fn_rm (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
-
+//NEED TO DO
 void fn_rmr (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);

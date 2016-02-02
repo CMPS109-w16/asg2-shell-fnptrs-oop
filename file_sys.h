@@ -54,9 +54,7 @@ class inode_state {
       void read_file(const inode_ptr&, const wordvec&) const;
       void print_path(const inode_ptr&) const;
       void make_directory(const inode_ptr&, const wordvec&) const;
-
-
-
+      void change_directory(inode_state&, const wordvec&);
 };
 
 // class inode -

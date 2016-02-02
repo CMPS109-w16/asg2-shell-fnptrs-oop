@@ -51,4 +51,3 @@ int exit_status_message();
 class ysh_exit: public exception {};
 
 #endif
-

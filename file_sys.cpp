@@ -90,66 +90,45 @@ void inode_state::print_path(const inode_ptr& curr_dir) const {
 // The directory listings will show the inode number, directory/file
 // size, and the name of the contents (directory or plain file) inside
 // in that order.
-void inode_state::print_directory(const inode_ptr& curr_dir,
-         const wordvec& args) const {
-   if (args.size() == 1) {
+void inode_state::print_directory
+(const inode_ptr& curr_dir, const wordvec& args) const {
+   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
+   if(args.size() == 1){
       cout << curr_dir->get_name() << ":" << endl;
-      map<string, inode_ptr> dirents =
-               curr_dir->contents->get_contents();
-      for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+      for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
          cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
-                  << i->second->contents->size() << "  " << i->first
-                  << endl;
+             << i->second->contents->size() << "  " << i->first << endl;
       }
-   } else if (args.size() > 1) {
+   }
+   else{
       wordvec path_name = split(args.at(1), "/");
-      map<string, inode_ptr> dirents =
-               curr_dir->contents->get_contents();
-      // mk_dir will search for the directory that the new directory
-      // will be created in.
-      // dir_found isolates directories that return correct directory
-      // locations. Used to navigate towards the given directory.
-      inode_ptr mk_dir = curr_dir;
-      bool dir_found = false;
-      // Walks through the list of path names, comparing them against
-      // the path names within the current directory.
-      for (size_t i = 0; i < path_name.size(); ++i) {
+      inode_ptr ls_dir = curr_dir; bool dir_found = false;
+      for(size_t i = 0; i < path_name.size(); ++i){
          dir_found = false;
-         for (auto j = dirents.cbegin(); j != dirents.cend(); ++j) {
-            // If the given pathname matches one being walked through
-            // in the current directory, move the mk_dir into the
-            // that pathname.
-            if (j->first == path_name.at(i) + "/") {
-               mk_dir = j->second;
+         for(auto j = dirents.cbegin(); j != dirents.cend(); ++j){
+            if(j->first == path_name.at(i) + "/"){
+               ls_dir = j->second;
                dir_found = true;
             }
+            /*else if(j->first == "." or j->first == ".."){
+               ls_dir = j->second;
+               dir_found = true;
+            }*/
          }
-         if (dir_found == false) {
-            throw command_error("make_directory: invalid pathname");
+         if(dir_found == false){
+            throw command_error("print_directory: invalid pathname");
          }
-         // Once in the new directory, get its current contents.
-         dirents = mk_dir->contents->get_contents();
-         // This searching crawl method will be repeated until
-         // either the given directory is made with the new
-         // directory inside of it, or an error is found.
+         dirents = ls_dir->contents->get_contents();
       }
-      // new_dir is inode for the directory being made.
-      // It is inserted into its own parent directory, since new_dir represents
-      // the directory being created.
-
-      // Fix for name. Moves the / from the end of the name to begin.
-      string name_fix = mk_dir->get_name();
+      string name_fix = ls_dir->get_name();
       name_fix.pop_back();
       name_fix = "/" + name_fix;
-
       cout << name_fix << ":" << endl;
       for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
          cout << setw(6) << i->second->get_inode_nr() << "  " << setw(6)
                   << i->second->contents->size() << "  " << i->first
                   << endl;
       }
-   } else {
-      throw command_error("make_directory: invalid number of arguments");
    }
 }
 
@@ -158,43 +137,62 @@ void inode_state::print_directory(const inode_ptr& curr_dir,
 // within the current directory.
 void inode_state::create_file
 (const inode_ptr& curr_dir, const wordvec& words) const {
-   inode_ptr file = curr_dir->contents->mkfile(words.at(1));
-   vector<string> data;
-   // If the mkfile command is meant to add words to the file.
-   if (words.size() > 2) {
-      // Start at 2, since the first two positions in the vector
-      // point to the command function and the file name. Everything
-      // after that are words to be added to the function.
-      for (size_t i = 2; i < words.size(); ++i) {
-         data.push_back(words.at(i));
+   wordvec path_name = split(words.at(1), "/");
+   map<string, inode_ptr> dirents = curr_dir->
+            contents->get_contents();
+   //mk_file points to the dir that the file will be created in
+   inode_ptr mk_file = curr_dir; bool dir_found = false;
+   //same_file points to the duplicate file, if there is one
+   inode_ptr same_file = nullptr; bool file_match = false;
+   for (size_t i = 0; i < path_name.size() - 1; ++i) {
+      dir_found = false;
+      for (auto j = dirents.cbegin(); j != dirents.cend(); ++j) {
+         if (j->first == path_name.at(i) + "/") {
+            mk_file = j->second;
+            dir_found = true;
+         }
       }
-   }      // If no words in mkfile command, make an empty file.
-   else
-      data.push_back("");
+      if (dir_found == false) {
+         throw command_error("create_file: invalid pathname");
+      }
+      dirents = mk_file->contents->get_contents();
+   }
    //Check to see if a dir or a file with the same name exists
-   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
-   for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+   for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
       // If the file has the same name as a directory, throw an error.
       if (i->first == words.at(1) + "/") {
-         throw command_error("make_directory: "
+         throw command_error("create_file: "
                   "directory has same name");
          // If the file has the same name as an existing file, replace
          // the existing file with the new one (including new data).
-      } else if (i->first == words.at(1)) {
-         file = i->second;
+      }
+      else if(i->first == words.at(1)){
+         file_match = true;
+         same_file = i->second;
       }
    }
-   file->contents->set_data(data);
-   dirents.insert(pair<string, inode_ptr>(file->get_name(), file));
-   curr_dir->contents->set_contents(dirents);
+   if(file_match){
+      same_file ->contents->writefile(words);
+      dirents.insert(pair<string, inode_ptr>
+      (same_file->get_name(), same_file));
+      mk_file->contents->set_contents(dirents);
+   }
+   else{
+      inode_ptr new_file = mk_file->contents->
+                  mkfile(path_name.at(path_name.size() - 1));
+      new_file->contents->writefile(words);
+      dirents.insert(pair<string, inode_ptr>
+      (new_file->get_name(), new_file));
+      mk_file->contents->set_contents(dirents);
+   }
 }
 
 // Reads a plain file and outputs its text.
 // Captures the current directory and its contents, scans each one to
 // see if a content name matches the given search name, checks to make
 // sure it is a readable file, and then outputs the file's word vector.
-void inode_state::read_file(const inode_ptr& curr_dir,
-         const wordvec& words) const {
+void inode_state::read_file
+(const inode_ptr& curr_dir, const wordvec& words) const {
    for (size_t k = 1; k != words.size(); ++k) {
       bool file_found = false;      // Flags true if file found.
       map<string, inode_ptr> dirents =
@@ -227,49 +225,71 @@ void inode_state::read_file(const inode_ptr& curr_dir,
 // Makes a new directory. If called with a directory path, will create
 // the new directory in that path. Otherwise, it will create the
 // new directory in the current path.
-void inode_state::make_directory(const inode_ptr& curr_dir,
-         const wordvec& path) const {
-   // Takes the pathname parameter and separates the given directory
-   // into individual directory path names.
-   wordvec path_name = split(path.at(1), "/");
-   map<string, inode_ptr> dirents = curr_dir->contents->get_contents();
-   // mk_dir will search for the directory that the new directory
-   // will be created in.
-   // dir_found isolates directories that return correct directory
-   // locations. Used to navigate towards the given directory.
-   inode_ptr mk_dir = curr_dir;
-   bool dir_found = false;
-   // Walks through the list of path names, comparing them against
-   // the path names within the current directory.
-   for (size_t i = 0; i < path_name.size() - 1; ++i) {
-      dir_found = false;
-      for (auto j = dirents.cbegin(); j != dirents.cend(); ++j) {
-         // If the given pathname matches one being walked through
-         // in the current directory, move the mk_dir into the
-         // that pathname.
-         if (j->first == path_name.at(i) + "/") {
-            mk_dir = j->second;
-            dir_found = true;
+void inode_state::make_directory
+(const inode_ptr& curr_dir, const wordvec& path) const {
+      wordvec path_name = split(path.at(1), "/");
+      map<string, inode_ptr> dirents = curr_dir->
+               contents->get_contents();
+      //mk_dir will point to the dir where the new dir is created
+      inode_ptr mk_dir = curr_dir; bool dir_found = false;
+      for(size_t i = 0; i < path_name.size() - 1; ++i){
+         dir_found = false;
+         // Checks each entity in the directory for a name match.
+         for(auto j = dirents.cbegin(); j != dirents.cend(); ++j){
+            if(j->first == path_name.at(i) + "/"){
+               mk_dir = j->second;
+               dir_found = true;
+            }
+         }
+         if(dir_found == false){
+            throw command_error("make_directory: invalid pathname");
+         }
+         dirents = mk_dir->contents->get_contents();
+      }
+      //Check to see if a dir with that name already exists
+      for(auto i = dirents.cbegin(); i != dirents.cend(); ++i){
+         if(i->first == path_name.at(path_name.size() - 1) + "/"){
+            throw command_error
+            ("make_directory: a dir already exists with that name");
          }
       }
-      if (dir_found == false) {
-         throw command_error("make_directory: invalid pathname");
-      }
-      // Once in the new directory, get its current contents.
-      dirents = mk_dir->contents->get_contents();
-      // This searching crawl method will be repeated until
-      // either the given directory is made with the new
-      // directory inside of it, or an error is found.
+      inode_ptr new_dir = mk_dir->contents->mkdir
+               (path_name.at(path_name.size() - 1));
+      new_dir->contents->set_dir(new_dir, mk_dir);
+      dirents.insert(pair<string, inode_ptr>
+      (new_dir->get_name(), new_dir));
+      mk_dir->contents->set_contents(dirents);
+}
+
+// Change current prompt directory to the one specified.
+void inode_state::change_directory
+(inode_state& curr_state, const wordvec& args){
+   if(args.size() == 1) cwd = curr_state.get_root();  // Root dir.
+   else{
+      wordvec path_name = split(args.at(1), "/");
+      string path = args.at(1); inode_ptr cd;
+      path = path.at(0);
+      if(path == "/") cd = curr_state.get_root();     // Root dir.
+      else cd = curr_state.get_cwd();
+      bool dir_found = false;
+      map<string, inode_ptr> dirents = cd->contents->get_contents();
+      // Search each entity in each directory to find a pathname
+      // match from the input arguments.
+      for(size_t i = 0; i < path_name.size(); ++i){
+          dir_found = false;
+          for(auto j = dirents.cbegin(); j != dirents.cend(); ++j){
+             if(j->first == path_name.at(i) + "/"){
+                cd = j->second;
+                dir_found = true;
+             }
+          }
+          if(dir_found == false){
+             throw command_error("change_directory: invalid pathname");
+          }
+          dirents = cd->contents->get_contents();
+       }
+      cwd = cd;
    }
-   // new_dir is inode for the directory being made.
-   // It is inserted into its own parent directory, since new_dir represents
-   // the directory being created.
-   inode_ptr new_dir = mk_dir->contents->mkdir(
-            path_name.at(path_name.size() - 1));
-   new_dir->contents->set_dir(new_dir, mk_dir);
-   dirents.insert(
-            pair<string, inode_ptr>(new_dir->get_name(), new_dir));
-   mk_dir->contents->set_contents(dirents);
 }
 
 //        *********************************************
@@ -323,7 +343,15 @@ const wordvec& plain_file::readfile() const {
    return data;
 }
 
+// Writes text into the data wordvec in plain file.
 void plain_file::writefile (const wordvec& words) {
+   wordvec new_data;
+   // Skip the first two entities in the word vec, since 0 is the
+   // make command and 1 is the filename parameter.
+   for(size_t i = 2; i < words.size(); ++i){
+      new_data.push_back(words.at(i));
+   }
+   data = new_data;
    DEBUGF ('i', words);
 }
 

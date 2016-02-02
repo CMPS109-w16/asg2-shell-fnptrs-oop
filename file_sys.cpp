@@ -365,6 +365,35 @@ void inode_state::change_directory
    }
 }
 
+// Removes the specified file or directory. Will easily remove files,
+// but directories must be empty before being removed.
+// WIP: currently decreases directory size, but not remove the name.
+void inode_state::remove(const inode_ptr& curr_dir,
+         const wordvec& args) const {
+   for (size_t k = 1; k != args.size(); ++k) {
+      bool file_found = false;      // Flags true if file found.
+      map<string, inode_ptr> dirents =
+               curr_dir->contents->get_contents();
+      for (auto i = dirents.cbegin(); i != dirents.cend(); ++i) {
+         // Search to see if a file or directory shares the name.
+         if (i->first == args.at(k)) {
+            // See if the matching file is a directory.
+            if (i->second->contents->is_dir() == false) {
+               file_found = true;
+               curr_dir->contents->get_contents().erase(i);
+               // If the match is a directory, throw an error.
+            } else if (i->second->contents->is_dir() == true) {
+               throw command_error("fn_rm: cannot read directories.");
+            }
+         }
+      }
+      // If there are no matches in the directory's entities, error.
+      if (!file_found) {
+         throw command_error("fn_rm: file not found.");
+      }
+   }
+}
+
 //        *********************************************
 //        ************** Inode Functions **************
 //        *********************************************

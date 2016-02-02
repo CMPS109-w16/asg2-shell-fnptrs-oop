@@ -103,12 +103,16 @@ void fn_ls (inode_state& state, const wordvec& words){
    if(words.size() <= 2){
       state.print_directory(state.get_cwd(), words);
    }
+   else throw command_error("fn_ls: invalid num of args");
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
 
 void fn_lsr (inode_state& state, const wordvec& words){
-   state.list_recursively(state, words);
+   if(words.size() <= 2){
+      state.list_recursively(state, words);
+   }
+   else throw command_error("fn_lsr: invalid num of args");
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
@@ -143,11 +147,13 @@ void fn_prompt (inode_state& state, const wordvec& words){
 
 void fn_pwd (inode_state& state, const wordvec& words){
    if(words.size() == 1) state.print_path(state.get_cwd());
+   else throw command_error("fn_pwd: invalid num of args");
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
-//NEED TO DO
+
 void fn_rm (inode_state& state, const wordvec& words){
+   state.remove(state.get_cwd(), words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

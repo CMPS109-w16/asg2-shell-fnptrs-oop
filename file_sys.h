@@ -56,6 +56,7 @@ class inode_state {
       void make_directory(const inode_ptr&, const wordvec&) const;
       void change_directory(inode_state&, const wordvec&);
       void list_recursively(inode_state&, const wordvec&);
+      void remove(const inode_ptr&, const wordvec&) const;
       friend void lsr(inode_ptr&);
 
 

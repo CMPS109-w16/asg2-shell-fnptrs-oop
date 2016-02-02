@@ -90,9 +90,9 @@ void inode_state::print_path(const inode_ptr& curr_dir) const {
       parent = dirents.at("..");
    }
    for(auto i = path.cend() - 1; i != path.cbegin() - 1; --i){
-      if(i == path.cend() - 1) cout << *i;
-      else if(i > path.cbegin()) cout << *i << "/";
-      else cout << *i;
+      //if(i == path.cend() - 1) cout << *i;
+      //else if(i > path.cbegin()) cout << *i << "/";
+      cout << *i;
    }
    cout << endl;
 }
@@ -124,10 +124,11 @@ void inode_state::print_directory
                ls_dir = j->second;
                dir_found = true;
             }
-            /*else if(j->first == "." or j->first == ".."){
+            else if(path_name.at(0) == j->first){
                ls_dir = j->second;
                dir_found = true;
-            }*/
+               break;
+            }
          }
          if(dir_found == false){
             throw command_error("print_directory: invalid pathname");

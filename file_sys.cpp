@@ -310,13 +310,13 @@ void inode_state::remove(const inode_ptr& curr_dir,
                curr_dir->contents->get_contents().erase(i);
                // If the match is a directory, throw an error.
             } else if (i->second->contents->is_dir() == true) {
-               throw command_error("fn_cat: cannot read directories.");
+               throw command_error("fn_rm: cannot read directories.");
             }
          }
       }
       // If there are no matches in the directory's entities, error.
       if (!file_found) {
-         throw command_error("fn_cat: file not found.");
+         throw command_error("fn_rm: file not found.");
       }
    }
 }

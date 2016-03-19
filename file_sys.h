@@ -1,4 +1,6 @@
 // $Id: file_sys.h,v 1.4 2016-01-14 16:16:52-08 - - $
+// Partner: Darius Sakhapour(dsakhapo@ucsc.edu)
+// Partner: Ryan Wong (rystwong@ucsc.edu)
 
 #ifndef __INODE_H__
 #define __INODE_H__
@@ -23,7 +25,7 @@ class directory;
 using inode_ptr = shared_ptr<inode>;
 using base_file_ptr = shared_ptr<base_file>;
 ostream& operator<< (ostream&, file_type);
-
+void lsr(inode_ptr&);
 // inode_state -
 //    A small convenient class to maintain the state of the simulated
 //    process:  the root (/), the current directory (.), and the
@@ -37,10 +39,28 @@ class inode_state {
       inode_state& operator= (const inode_state&) = delete; // op=
       inode_ptr root {nullptr};
       inode_ptr cwd {nullptr};
+      inode_ptr parent {nullptr};
       string prompt_ {"% "};
    public:
       inode_state();
       const string& prompt();
+      inode_ptr get_root() const {return root;}
+      inode_ptr get_cwd() const {return cwd;}
+      void set_cwd(inode_ptr new_cwd) {cwd = new_cwd;}
+      void set_prompt(string new_prompt){prompt_ = new_prompt;}
+      inode_ptr get_parent() const {return parent;}
+      void print_directory(const inode_ptr&, const wordvec&) const;
+      void create_file(const inode_ptr&, const wordvec&) const;
+      void read_file(const inode_ptr&, const wordvec&) const;
+      void print_path(const inode_ptr&) const;
+      void make_directory(const inode_ptr&, const wordvec&) const;
+      void change_directory(inode_state&, const wordvec&);
+      void list_recursively(inode_state&, const wordvec&);
+      void remove(const inode_ptr&, const wordvec&) const;
+      friend void lsr(inode_ptr&);
+
+
+
 };
 
 // class inode -
@@ -62,9 +82,14 @@ class inode {
       static int next_inode_nr;
       int inode_nr;
       base_file_ptr contents;
+      string name {""};
    public:
       inode (file_type);
       int get_inode_nr() const;
+      void set_name(string s) {name = s;}
+      string get_name() const {return name;}
+      friend void lsr(inode_ptr&);
+
 };
 
 // class base_file -
@@ -92,6 +117,11 @@ class base_file {
       virtual void remove (const string& filename) = 0;
       virtual inode_ptr mkdir (const string& dirname) = 0;
       virtual inode_ptr mkfile (const string& filename) = 0;
+      virtual void set_dir(inode_ptr, inode_ptr) = 0;
+      virtual map<string, inode_ptr>& get_contents() = 0;
+      virtual void set_contents(const map<string, inode_ptr>&) = 0;
+      virtual void set_data(const wordvec& d) = 0;
+      virtual bool is_dir() = 0;
 };
 
 // class plain_file -
@@ -113,6 +143,11 @@ class plain_file: public base_file {
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
+      virtual void set_dir(inode_ptr, inode_ptr) override;
+      virtual map<string, inode_ptr>& get_contents() override;
+      virtual void set_contents(const map<string, inode_ptr>&) override;
+      virtual void set_data(const wordvec& d)override {data = d;}
+      virtual bool is_dir() override {return false;}
 };
 
 // class directory -
@@ -138,12 +173,20 @@ class directory: public base_file {
       // Must be a map, not unordered_map, so printing is lexicographic
       map<string,inode_ptr> dirents;
    public:
+      directory();
+      directory(const directory&);
+      directory(directory&&);
       virtual size_t size() const override;
       virtual const wordvec& readfile() const override;
       virtual void writefile (const wordvec& newdata) override;
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
+      virtual void set_dir(inode_ptr, inode_ptr) override;
+      virtual map<string, inode_ptr>& get_contents() override;
+      virtual void set_contents(const map<string, inode_ptr>&) override;
+      virtual void set_data(const wordvec& d)override;
+      virtual bool is_dir() override {return true;}
 };
 
 #endif

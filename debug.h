@@ -1,4 +1,6 @@
 // $Id: debug.h,v 1.7 2016-01-14 16:16:52-08 - - $
+// Partner: Darius Sakhapour(dsakhapo@ucsc.edu)
+// Partner: Ryan Wong (rystwong@ucsc.edu)
 
 #ifndef __DEBUG_H__
 #define __DEBUG_H__

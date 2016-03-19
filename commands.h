@@ -1,4 +1,6 @@
 // $Id: commands.h,v 1.11 2016-01-14 14:45:21-08 - - $
+// Partner: Darius Sakhapour(dsakhapo@ucsc.edu)
+// Partner: Ryan Wong (rystwong@ucsc.edu)
 
 #ifndef __COMMANDS_H__
 #define __COMMANDS_H__
@@ -25,6 +27,7 @@ class command_error: public runtime_error {
 
 // execution functions -
 
+void fn_comm   (inode_state& state, const wordvec& words);
 void fn_cat    (inode_state& state, const wordvec& words);
 void fn_cd     (inode_state& state, const wordvec& words);
 void fn_echo   (inode_state& state, const wordvec& words);

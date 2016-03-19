@@ -1,4 +1,6 @@
 // $Id: util.cpp,v 1.11 2016-01-13 16:21:53-08 - - $
+// Partner: Darius Sakhapour(dsakhapo@ucsc.edu)
+// Partner: Ryan Wong (rystwong@ucsc.edu)
 
 #include <cstdlib>
 #include <unistd.h>
@@ -38,7 +40,6 @@ bool want_echo() {
    return cin_is_not_a_tty or cout_is_not_a_tty;
 }
 
-
 wordvec split (const string& line, const string& delimiters) {
    wordvec words;
    size_t end = 0;
